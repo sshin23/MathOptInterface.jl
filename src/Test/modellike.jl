@@ -462,7 +462,7 @@ function emptytest(model::MOI.ModelLike)
     @test !MOI.is_valid(model, c)
 end
 
-abstract type BadModel <: MOI.ModelLike end
+abstract type BadModel{F,S} <: MOI.ModelLike end
 function MOI.get(::BadModel, ::MOI.ListOfModelAttributesSet)
     return MOI.AbstractModelAttribute[]
 end
@@ -471,8 +471,8 @@ MOI.get(::BadModel, ::MOI.ListOfVariableIndices) = [MOI.VariableIndex(1)]
 function MOI.get(::BadModel, ::MOI.ListOfVariableAttributesSet)
     return MOI.AbstractVariableAttribute[]
 end
-function MOI.get(::BadModel, ::MOI.ListOfConstraints)
-    return [(MOI.SingleVariable, MOI.EqualTo{Float64})]
+function MOI.get(::BadModel{F,S}, ::MOI.ListOfConstraints) where {F,S}
+    return [(F, S)]
 end
 function MOI.get(::BadModel, ::MOI.ListOfConstraintIndices{F,S}) where {F,S}
     return [MOI.ConstraintIndex{F,S}(1)]
@@ -480,25 +480,25 @@ end
 function MOI.get(
     ::BadModel,
     ::MOI.ConstraintFunction,
-    ::MOI.ConstraintIndex{MOI.SingleVariable,MOI.EqualTo{Float64}},
-)
-    return MOI.SingleVariable(MOI.VariableIndex(1))
+    ::MOI.ConstraintIndex{F},
+) where {F}
+    return convert(F, MOI.SingleVariable(MOI.VariableIndex(1)))
 end
 function MOI.get(
     ::BadModel,
     ::MOI.ConstraintSet,
-    ::MOI.ConstraintIndex{MOI.SingleVariable,MOI.EqualTo{Float64}},
-)
-    return MOI.EqualTo(0.0)
+    ::MOI.ConstraintIndex{F,S},
+) where {F,S}
+    return BasicConstraintTests[(F,S)][3]::S
 end
 function MOI.get(::BadModel, ::MOI.ListOfConstraintAttributesSet)
     return MOI.AbstractConstraintAttribute[]
 end
 
-struct BadConstraintModel <: BadModel end
-function MOI.get(::BadConstraintModel, ::MOI.ListOfConstraints)
+struct BadConstraintModel{F,S} <: BadModel{F,S} end
+function MOI.get(::BadConstraintModel{F,S}, ::MOI.ListOfConstraints) where {F,S}
     return [
-        (MOI.SingleVariable, MOI.EqualTo{Float64}),
+        (F, S),
         (MOI.SingleVariable, UnknownScalarSet{Float64}),
     ]
 end
@@ -518,14 +518,14 @@ function MOI.get(
 end
 
 struct UnknownModelAttribute <: MOI.AbstractModelAttribute end
-struct BadModelAttributeModel <: BadModel end
+struct BadModelAttributeModel{F,S} <: BadModel{F,S} end
 MOI.get(src::BadModelAttributeModel, ::UnknownModelAttribute) = 0
 function MOI.get(::BadModelAttributeModel, ::MOI.ListOfModelAttributesSet)
     return MOI.AbstractModelAttribute[UnknownModelAttribute()]
 end
 
 struct UnknownVariableAttribute <: MOI.AbstractVariableAttribute end
-struct BadVariableAttributeModel <: BadModel end
+struct BadVariableAttributeModel{F,S} <: BadModel{F,S} end
 function MOI.get(
     ::BadVariableAttributeModel,
     ::UnknownVariableAttribute,
@@ -538,7 +538,7 @@ function MOI.get(::BadVariableAttributeModel, ::MOI.ListOfVariableAttributesSet)
 end
 
 struct UnknownConstraintAttribute <: MOI.AbstractConstraintAttribute end
-struct BadConstraintAttributeModel <: BadModel end
+struct BadConstraintAttributeModel{F,S} <: BadModel{F,S} end
 function MOI.get(
     ::BadConstraintAttributeModel,
     ::UnknownConstraintAttribute,
@@ -553,7 +553,7 @@ function MOI.get(
     return MOI.AbstractConstraintAttribute[UnknownConstraintAttribute()]
 end
 
-function failcopytestc(dest::MOI.ModelLike)
+function failcopytestc(dest::MOI.ModelLike, ::Type{F}=MOI.SingleVariable, ::Type{S}=MOI.EqualTo{Float64}) where {F,S}
     @test !MOI.supports_constraint(
         dest,
         MOI.SingleVariable,
@@ -561,24 +561,24 @@ function failcopytestc(dest::MOI.ModelLike)
     )
     @test_throws MOI.UnsupportedConstraint MOI.copy_to(
         dest,
-        BadConstraintModel(),
+        BadConstraintModel{F,S}(),
     )
 end
-function failcopytestia(dest::MOI.ModelLike)
+function failcopytestia(dest::MOI.ModelLike, ::Type{F}=MOI.SingleVariable, ::Type{S}=MOI.EqualTo{Float64}) where {F,S}
     @test !MOI.supports(dest, UnknownModelAttribute())
     @test_throws MOI.UnsupportedAttribute MOI.copy_to(
         dest,
-        BadModelAttributeModel(),
+        BadModelAttributeModel{F,S}(),
     )
 end
-function failcopytestva(dest::MOI.ModelLike)
+function failcopytestva(dest::MOI.ModelLike, ::Type{F}=MOI.SingleVariable, ::Type{S}=MOI.EqualTo{Float64}) where {F,S}
     @test !MOI.supports(dest, UnknownVariableAttribute(), MOI.VariableIndex)
     @test_throws MOI.UnsupportedAttribute MOI.copy_to(
         dest,
-        BadVariableAttributeModel(),
+        BadVariableAttributeModel{F,S}(),
     )
 end
-function failcopytestca(dest::MOI.ModelLike)
+function failcopytestca(dest::MOI.ModelLike, ::Type{F}=MOI.SingleVariable, ::Type{S}=MOI.EqualTo{Float64}) where {F,S}
     @test !MOI.supports(
         dest,
         UnknownConstraintAttribute(),
@@ -586,7 +586,7 @@ function failcopytestca(dest::MOI.ModelLike)
     )
     @test_throws MOI.UnsupportedAttribute MOI.copy_to(
         dest,
-        BadConstraintAttributeModel(),
+        BadConstraintAttributeModel{F,S}(),
     )
 end
 
