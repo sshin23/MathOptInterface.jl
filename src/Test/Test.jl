@@ -63,8 +63,10 @@ Config(
 )
 ```
 """
-function Config(
-    ::Type{T} = Float64;
+function Config(::Type{T} = Float64; kws...) where {T<:Real}
+    return Config{T}(; kws...)
+end
+function Config{T}(;
     atol::Real = Base.rtoldefault(T),
     rtol::Real = Base.rtoldefault(T),
     optimal_status::MOI.TerminationStatusCode = MOI.OPTIMAL,
@@ -73,6 +75,7 @@ function Config(
 ) where {T<:Real}
     return Config{T}(atol, rtol, optimal_status, infeasible_status, exclude)
 end
+
 
 function Base.copy(config::Config{T}) where {T}
     return Config{T}(
