@@ -98,26 +98,6 @@ function MOI.get(
     return x[1] + bridge.set_constant
 end
 
-function MOI.set(
-    model::MOI.ModelLike,
-    attr::MOI.ConstraintPrimalStart,
-    bridge::VectorizeBridge,
-    ::Nothing,
-)
-    MOI.set(model, attr, ci.vector_constraint, nothing)
-    return
-end
-
-function MOI.set(
-    model::MOI.ModelLike,
-    attr::MOI.ConstraintPrimalStart,
-    bridge::VectorizeBridge,
-    value,
-)
-    MOI.set(model, attr, bridge.vector_constraint, [value - bridge.set_constant])
-    return
-end
-
 function MOI.get(
     model::MOI.ModelLike,
     attr::MOI.ConstraintPrimal,
@@ -135,6 +115,16 @@ function MOI.get(
         # removed from the original function
         return x[1] + bridge.set_constant
     end
+end
+
+function MOI.set(
+    model::MOI.ModelLike,
+    attr::MOI.ConstraintPrimalStart,
+    bridge::VectorizeBridge,
+    ::Nothing,
+)
+    MOI.set(model, attr, ci.vector_constraint, nothing)
+    return
 end
 
 function MOI.set(
