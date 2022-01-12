@@ -111,7 +111,7 @@ end
 function MOI.set(
     model::MOI.ModelLike,
     attr::MOI.ConstraintPrimalStart,
-    bridge::ScalarizeBridge,
+    bridge::VectorizeBridge,
     value,
 )
     MOI.set(model, attr, bridge.vector_constraints, [value - bridge.set_constant])
