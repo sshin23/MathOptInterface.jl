@@ -114,7 +114,7 @@ function MOI.set(
     bridge::VectorizeBridge,
     value,
 )
-    MOI.set(model, attr, bridge.vector_constraints, [value - bridge.set_constant])
+    MOI.set(model, attr, bridge.vector_constraint, [value - bridge.set_constant])
     return
 end
 
