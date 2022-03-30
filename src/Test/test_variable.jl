@@ -361,7 +361,12 @@ function test_variable_solve_ZeroOne_with_upper_bound(
     x = MOI.add_variable(model)
     MOI.add_constraint(model, x, MOI.LessThan(T(2)))
     f = MOI.ScalarAffineFunction([MOI.ScalarAffineTerm(T(-2), x)], T(0))
-    MOI.add_constraint(model, x, MOI.ZeroOne())
+    try
+        MOI.add_constraint(model, x, MOI.ZeroOne())
+    catch err
+        @test err isa MOI.UpperBoundAlreadySet
+        return
+    end
     MOI.set(model, MOI.ObjectiveFunction{typeof(f)}(), f)
     MOI.set(model, MOI.ObjectiveSense(), MOI.MIN_SENSE)
     _test_model_solution(
@@ -401,7 +406,12 @@ function test_variable_solve_ZeroOne_with_0_upper_bound(
     x = MOI.add_variable(model)
     MOI.add_constraint(model, x, MOI.LessThan(T(0)))
     f = MOI.ScalarAffineFunction([MOI.ScalarAffineTerm(T(1), x)], T(0))
-    MOI.add_constraint(model, x, MOI.ZeroOne())
+    try
+        MOI.add_constraint(model, x, MOI.ZeroOne())
+    catch err
+        @test err isa MOI.UpperBoundAlreadySet
+        return
+    end
     MOI.set(model, MOI.ObjectiveFunction{typeof(f)}(), f)
     MOI.set(model, MOI.ObjectiveSense(), MOI.MIN_SENSE)
     _test_model_solution(
