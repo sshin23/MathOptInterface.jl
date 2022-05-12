@@ -267,15 +267,19 @@ function MOI.get(
     dim = MOI.side_dimension(bridge.square_set)
     sqr = Vector{eltype(tri)}(undef, dim^2)
     k = 0
+    has_symmetric_constraints = length(bridge.sym) > 0
     for j in 1:dim
         for i in 1:j
             k += 1
             # The triangle constraint uses only the upper triangular part
             if i == j
                 sqr[i+(j-1)*dim] = tri[k]
-            else
+            elseif has_symmetric_constraints
                 sqr[i+(j-1)*dim] = 2tri[k]
                 sqr[j+(i-1)*dim] = zero(eltype(sqr))
+            else
+                sqr[i+(j-1)*dim] = tri[k]
+                sqr[j+(i-1)*dim] = tri[k]
             end
         end
     end
