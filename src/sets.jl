@@ -1309,9 +1309,9 @@ end
 """
     BinPacking(c::T, w::Vector{T}) where {T}
 
-The set ``\\{x \\in \\mathbb{R}^d\\}`` such that each item `i` in `1:d` of
-weight `w[i]` is put into bin `x[i]`, and the total weight of each bin does not
-exceed `c`.
+The set ``\\{x \\in \\mathbb{R}^d\\}`` where `d = length(w)`, such that each
+item `i` in `1:d` of weight `w[i]` is put into bin `x[i]`, and the total weight
+of each bin does not exceed `c`.
 
 There are additional assumptions that the capacity, `c`, and the weights, `w`,
 must all be non-negative.
@@ -1358,12 +1358,13 @@ end
 """
     Cumulative(dimension::Int)
 
-The set ``\\{(s, d, r, b) \\in \\mathbb{Z}^{length(s)+length(d)+length(r)+1}\\}``
-representing the ``cumulative`` global constraint.
+The set ``\\{(s, d, r, b) \\in \\mathbb{R}^{3n+1}\\}``, representing the
+``cumulative`` global constraint, where
+`n == length(s) == length(r) == length(b)`.
 
-It requires that a set of tasks given by start times ``s``, durations ``d``, and
-resource requirements ``r``, never requires more than the global resource bound
-``b`` at any one time.
+`Cumulative` requires that a set of tasks given by start times ``s``, durations
+``d``, and resource requirements ``r``, never requires more than the global
+resource bound ``b`` at any one time.
 
 ## Also known as
 
@@ -1426,6 +1427,8 @@ Base.:(==)(x::Table{T}, y::Table{T}) where {T} = x.table == y.table
 The set ``\\{x \\in \\{1..d\\}^d\\}`` that constraints ``x`` to be a circuit,
 such that ``x_i = j`` means that ``j`` is the successor of ``i``.
 
+Subcircuits, such as `[2, 1, 3]` and `[2, 1, 4, 3]`, are not valid.
+
 ## Also known as
 
 This constraint is called `circuit` in MiniZinc.
@@ -1452,11 +1455,14 @@ end
     Path(from::Vector{Int}, to::Vector{Int})
 
 Given a graph comprised of a set of nodes `1..N` and a set of arcs `1..E`
-represented by an edge from node `from[i]` to node `to[i]`, `Path` constraints
+represented by an edge from node `from[i]` to node `to[i]`, `Path` constrains
 the set
 ``(s, t, ns, es) \\in (1..N)\\times(1..N)\\times\\{0,1\\}^N\\times\\{0,1\\}^E``,
 to form subgraph that is a path from node `s` to node `t`, where node `n` is in
 the path if `ns[n]` is `1`, and edge `e` is in the path if `es[e]` is `1`.
+
+The path must be acyclic, and it must traverse all nodes `n` for which `ns[n]`
+is `1`, and all edges `e` for which `es[e]` is `1`.
 
 ## Also known as
 
